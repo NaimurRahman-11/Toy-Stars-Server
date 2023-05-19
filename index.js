@@ -74,12 +74,15 @@ async function run() {
 
 
     //Read Operation
-    app.get('/alltoys', async (req, res) => {
-      const cursor = toysCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    })
+  app.get('/alltoys', async (req, res) => {
+  const searchQuery = req.query.search || ''; // Get the search query from request parameters
+  const searchRegex = new RegExp(searchQuery, 'i'); // Create a case-insensitive regular expression for searching
 
+  const query = { toyName: searchRegex }; // Add the search condition to the query
+  const cursor = toysCollection.find(query).limit(20); // Limit the results to 20
+  const result = await cursor.toArray();
+  res.send(result);
+});
 
 
     //Logged in user specific email toy data's
