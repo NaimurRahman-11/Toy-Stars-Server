@@ -6,11 +6,15 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
+
+app.use(cors({
+  methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
+}));
 
 const corsConfig = {
   origin: '',
@@ -87,15 +91,15 @@ async function run() {
 
 
     //Read Operation
-  app.get('/alltoys', async (req, res) => {
-  const searchQuery = req.query.search || ''; // Get the search query from request parameters
-  const searchRegex = new RegExp(searchQuery, 'i'); // Create a case-insensitive regular expression for searching
+    app.get('/alltoys', async (req, res) => {
+      const searchQuery = req.query.search || ''; // Get the search query from request parameters
+      const searchRegex = new RegExp(searchQuery, 'i'); // Create a case-insensitive regular expression for searching
 
-  const query = { toyName: searchRegex }; // Add the search condition to the query
-  const cursor = toysCollection.find(query).limit(20); // Limit the results to 20
-  const result = await cursor.toArray();
-  res.send(result);
-});
+      const query = { toyName: searchRegex }; // Add the search condition to the query
+      const cursor = toysCollection.find(query).limit(20); // Limit the results to 20
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
 
     //Logged in user specific email toy data's
@@ -104,13 +108,15 @@ async function run() {
       console.log(req.query.category);
       let query = {};
       if (req.query?.email) {
-        query = {sellerEmail: req.query.email}
+        query = { sellerEmail: req.query.email }
       }
 
       if (req.query?.category) {
-        query = {category: req.query.category}
+        query = { category: req.query.category }
       }
-      const result = await toysCollection.find(query).toArray();
+      const sortField = req.query.sort || 'asc'; // Default to ascending order if no sort parameter is provided
+      const sortOption = sortField === 'asc' ? 1 : -1;
+      const result = await toysCollection.find(query).sort({ price: sortOption }).toArray();
       res.send(result);
     })
 
@@ -122,7 +128,7 @@ async function run() {
       const result = await toysCollection.deleteOne(query);
       res.send(result);
     })
-  
+
 
 
 
